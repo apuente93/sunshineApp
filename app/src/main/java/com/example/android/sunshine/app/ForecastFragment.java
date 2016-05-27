@@ -1,5 +1,6 @@
 package com.example.android.sunshine.app;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -15,7 +16,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,8 +28,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class ForecastFragment extends Fragment {
 
@@ -68,19 +66,13 @@ public class ForecastFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        //After the root view is created, create some dummy list of forecast entries
-        FetchWeatherTask weatherTask = new FetchWeatherTask();
-
-
-        String[] dummyForecastEntries = {"Today-Sunny-88/63", "Monday-Cloudy-70/63",
-                "Tuesday-Sunny-86-75", "Wednesday-Rainy-70/52", "Thursday-Rainy-75-65",
-                "Friday-Foggy-66-46", "Saturday-Sunny-92-80"};
-        ArrayList<String> forecastEntries = new ArrayList<String>
-                (Arrays.asList(dummyForecastEntries));
-
         //Create the new forecast adapter with the entries retrieved from server
         mForecastAdapter = new ArrayAdapter<String>(getActivity(),
-                R.layout.list_item_forecast, R.id.list_item_forecast_textview, forecastEntries);
+                R.layout.list_item_forecast, R.id.list_item_forecast_textview);
+
+        //Execute FetchWeatherTask to obtain initial data from server
+        FetchWeatherTask weatherTask = new FetchWeatherTask();
+        weatherTask.execute("53715");
 
         //Find ListView by Id
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
@@ -91,8 +83,12 @@ public class ForecastFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast toast = Toast.makeText(getActivity(), mForecastAdapter.getItem(i).toString(), Toast.LENGTH_SHORT);
-                toast.show();
+                // Executed in an Activity, so 'this' is the Context
+                // The fileUrl is a string URL, such as "http://www.example.com/image.png"
+                String data = mForecastAdapter.getItem(i).toString();
+                Intent detailActivityIntent = new Intent(
+                        getActivity(), DetailActivity.class).putExtra(Intent.EXTRA_TEXT, data);
+                startActivity(detailActivityIntent);
             }
         });
 
